@@ -21,9 +21,9 @@ import matplotlib.pyplot as plt
 # path settings
 BASEBALL_SAVANT_BASE_URL = 'https://baseballsavant.mlb.com'
 VIDEO_CLIP_BASE_URL = 'https://sporty-clips.mlb.com/'
-RAW_DATA_PATH = '../../data/raw'
-PITCH_TABLE_PATH = '../../data'
-PROCESSED_IMAGE_PATH = '../../data/processed'
+RAW_DATA_PATH = '../data/raw'
+PITCH_TABLE_PATH = '../data'
+PROCESSED_IMAGE_PATH = '../data/processed'
 
 
 # mel spectrogram settings
@@ -39,9 +39,9 @@ hop_length=2048
 
 def download_data(config: dict) -> pd.DataFrame:
 
-    if not os.path.exists(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv')):
-        df=pd.DataFrame(columns=['pitch','mph','exit_velocty','pitcher','batter','dist','spin_rate',
-                                'launch_angle','zone','date','count','inning','pitch_result','pitch_id'])
+    # if not os.path.exists(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv')):
+    df=pd.DataFrame(columns=['pitch','mph','exit_velocty','pitcher','batter','dist','spin_rate',
+                            'launch_angle','zone','date','count','inning','pitch_result','pitch_id'])
 
     # loop through each batter
     for batter in config['batter_ids']:
@@ -65,32 +65,35 @@ def download_data(config: dict) -> pd.DataFrame:
             for pitch in table.find_all('tr'):
                 elements=pitch.find_all('td')
                 if len(elements) != 0:
-                    try:
-                        play = BeautifulSoup(requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href']).text,"lxml")
-                        pitch_id=play.find_all('video')[0].source['src'].split('/')[-1].split('.')[0]
-                        print(pitch_id)
-                        if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')) and len(pitch_id)>1:
-                            urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
-                            df = pd.read_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'))
-                            df = df.append({
-                                'pitch':elements[0].text,
-                                'mph':elements[1].text,
-                                'exit_velocty':elements[2].text,
-                                'pitcher':elements[3].text,
-                                'batter':elements[4].text,
-                                'dist':elements[5].text,
-                                'spin_rate':elements[6].text,
-                                'launch_angle':elements[7].text,
-                                'zone':elements[8].text,
-                                'date':elements[9].text,
-                                'count':elements[10].text,
-                                'inning':elements[11].text,
-                                'pitch_result':elements[12].text,
-                                'pitch_id':pitch_id},ignore_index=True)
-                            df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'),index=False)
-                    except:
-                        pass
+                    # try:
+                    play = BeautifulSoup(requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href']).text,"lxml")
+                    pitch_id=play.find_all('video')[0].source['src'].split('/')[-1].split('.')[0]
+                    print(pitch_id)
+                    # df = pd.read_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'))
+                    if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')) and len(pitch_id)>1:
+                        urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
+                        
+                    df = df.append({
+                        'pitch':elements[0].text,
+                        'mph':elements[1].text,
+                        'exit_velocty':elements[2].text,
+                        'pitcher':elements[3].text,
+                        'batter':elements[4].text,
+                        'dist':elements[5].text,
+                        'spin_rate':elements[6].text,
+                        'launch_angle':elements[7].text,
+                        'zone':elements[8].text,
+                        'date':elements[9].text,
+                        'count':elements[10].text,
+                        'inning':elements[11].text,
+                        'pitch_result':elements[12].text,
+                        'pitch_id':pitch_id},ignore_index=True)
+
+                    df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
+                    # except:
+                        # pass
                     i=i+1
+    df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'),index=False)
     return df
 
 

@@ -12,7 +12,7 @@ The bigger question I want to explore is how machine learning can be leveraged t
 
 ### TL;DR.
 
-I used a Convolutional Neural Net to search for evidence of cheating in the MLB broadcast audio data. The model was able to identify (~90) of the instances of cheating without any specific training on trash can bangs.
+I used a Convolutional Neural Net to search for evidence of cheating in the MLB broadcast audio data. The model was able to identify (~90) of the instances of cheating without any specific training on trash can bangs sounds.
 
 #### Steps
 - Data Preparation

@@ -9,7 +9,7 @@ from sklearn.preprocessing import OneHotEncoder
 import joblib
 
 # get pitch dataframe
-df = processing_functions.get_pitch_metadata()
+df = processing_functions.get_pitch_table()
 
 
 # pull images
@@ -30,19 +30,19 @@ input_shape=(128, 108, 1)
 batch_size = 256
 num_epoch = 100
 
-model = model.PitchModel(image_shape = input_shape)
-model.compile(optimizer='adam',
+pitch_model = model.PitchModel(image_shape = input_shape)
+pitch_model.compile(optimizer='adam',
               loss='binary_crossentropy',
               metrics=['accuracy',tf.keras.metrics.AUC()])
 
 early_stopping = model.EarlyStoppingWithThreshold(monitor='val_accuracy', patience=5,threshold=np.mean(y_test)+0.05)
 
-model_log = model.fit(x= [X_image_train,X_meta_train], y= y_train,
+model_log = pitch_model.fit(x= [X_image_train,X_meta_train], y= y_train,
           batch_size=batch_size,
           epochs=num_epoch,
           validation_data=([X_image_test,X_meta_test], y_test),
           callbacks=[early_stopping],
           verbose=1)
 
-print(model.summary())
+print(pitch_model.summary())
 model.save(os.paths.join('../trained_models/pitch_model/model'))
