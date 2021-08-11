@@ -1,4 +1,5 @@
-#  How can machine learning be used on sports broadcast audio to detect cheating?
+# Finding evidence of cheating in MLB broadcast audio
+
 
 
 ## Preface
@@ -6,7 +7,7 @@
 
 What struck me the most while watching the Astros sign stealing cheating scandal unfold was, in restrospect, how blatantly obvious the sign stealing came through in the TV broadcasts. Its just hard to imagine that not one baseball fan spotted the trash can banging for well over a year. It seems that in a world of sabermetrics and online sports betting, the sounds and buzz of the stadium are still sacred.
 
-The bigger question I want to explore is how machine learning can be leveraged to catch instances of cheating in sports. Given that this cheating scandal happened right in front of our eyes, I wouldn't be surprised if we can find similar past cheating instances that blew right past our ears. This project serves as a 
+The bigger question I want to explore is how machine learning can be leveraged to catch instances of cheating in sports. Given that this cheating scandal happened right in front of our eyes, I wouldn't be surprised if we can find similar past cheating instances that blew right past our ears.
 
  ## Work In Progress!!!! Analysis, more documentation, and metadata to be commited soon.
 

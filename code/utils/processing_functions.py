@@ -26,14 +26,6 @@ PITCH_TABLE_PATH = '../data'
 PROCESSED_IMAGE_PATH = '../data/processed'
 
 
-# mel spectrogram settings
-duration = 5
-sr = 44100
-fmax = 2000
-nr_threshold = 0.5
-n_mels=128
-n_fft=8192
-hop_length=2048
 
 
 
@@ -65,33 +57,33 @@ def download_data(config: dict) -> pd.DataFrame:
             for pitch in table.find_all('tr'):
                 elements=pitch.find_all('td')
                 if len(elements) != 0:
-                    # try:
-                    play = BeautifulSoup(requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href']).text,"lxml")
-                    pitch_id=play.find_all('video')[0].source['src'].split('/')[-1].split('.')[0]
-                    print(pitch_id)
-                    # df = pd.read_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'))
-                    if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')) and len(pitch_id)>1:
-                        urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
-                        
-                    df = df.append({
-                        'pitch':elements[0].text,
-                        'mph':elements[1].text,
-                        'exit_velocty':elements[2].text,
-                        'pitcher':elements[3].text,
-                        'batter':elements[4].text,
-                        'dist':elements[5].text,
-                        'spin_rate':elements[6].text,
-                        'launch_angle':elements[7].text,
-                        'zone':elements[8].text,
-                        'date':elements[9].text,
-                        'count':elements[10].text,
-                        'inning':elements[11].text,
-                        'pitch_result':elements[12].text,
-                        'pitch_id':pitch_id},ignore_index=True)
+                    try:
+                        play = BeautifulSoup(requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href']).text,"lxml")
+                        pitch_id=play.find_all('video')[0].source['src'].split('/')[-1].split('.')[0]
+                        # print(pitch_id)
+                        if len(pitch_id)>1:
+                            if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')):
+                                urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
 
-                    df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
-                    # except:
-                        # pass
+                            df = df.append({
+                                'pitch':elements[0].text,
+                                'mph':elements[1].text,
+                                'exit_velocty':elements[2].text,
+                                'pitcher':elements[3].text,
+                                'batter':elements[4].text,
+                                'dist':elements[5].text,
+                                'spin_rate':elements[6].text,
+                                'launch_angle':elements[7].text,
+                                'zone':elements[8].text,
+                                'date':elements[9].text,
+                                'count':elements[10].text,
+                                'inning':elements[11].text,
+                                'pitch_result':elements[12].text,
+                                'pitch_id':pitch_id},ignore_index=True)
+
+                        df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
+                    except:
+                        pass
                     i=i+1
     df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv'),index=False)
     return df
@@ -100,13 +92,21 @@ def download_data(config: dict) -> pd.DataFrame:
 def process_data(pitch_ids: list,
                  keep_wavs: bool=False):
 
+    # mel spectrogram settings
+    duration = 5
+    sr = 44100
+    fmax = 2000
+    nr_threshold = 0.5
+    n_mels=128
+    n_fft=8192
+    hop_length=2048
 
     if not os.path.exists(os.path.join(RAW_DATA_PATH,'audio')):
         os.makedirs(os.path.join(RAW_DATA_PATH,'audio'))
 
 
     for pitch_id in pitch_ids:
-
+        print(pitch_id)
         video_file = os.path.join(RAW_DATA_PATH,'video', pitch_id + '.mp4')
         audio_file = os.path.join(RAW_DATA_PATH,'audio', pitch_id + '.wav')
         image_file = os.path.join(PROCESSED_IMAGE_PATH,pitch_id+'.png')
@@ -114,13 +114,13 @@ def process_data(pitch_ids: list,
         #### extract the audio from the video file
         if not os.path.exists(audio_file):
             command = "ffmpeg -i " + video_file + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + audio_file
-            subprocess.call(command, shell=True)
+            print(subprocess.call(command, shell=True))
 
         #### convert the wav to the mel-spectrogram
         y, sr = librosa.load(audio_file,sr=sr,offset=0,duration = duration)[:sr*duration]
 
         # remove noise from audio
-        reduced_noise_y = nr.reduce_noise(y = y, sr=sr, n_std_thresh_stationary=nr_threshold,stationary=True,use_tensorflow=True)
+        reduced_noise_y = nr.reduce_noise(y = y, sr=sr, n_std_thresh_stationary=nr_threshold,stationary=True)
 
         # extend short clips to the duration in seconds
         full_length = sr*duration

@@ -11,20 +11,20 @@ class EarlyStoppingWithThreshold(tf.keras.callbacks.Callback):
         self.monitor = monitor
         self.patience = patience
         self.best_weights = None
-        self.best_loss = np.inf
+        self.best_metric = -np.inf
         self.wait = 0
         self.threshold = threshold
 
 
-    def on_epoch_end(self, epoch, logs=None): 
+    def on_epoch_end(self, epoch, logs=None):
         current_metric = logs.get(self.monitor)
 
         # don't do anything if the metric hasn't breached the threshold
         if np.less(current_metric, self.threshold):
             self.wait = 0
             return
-        
-        if np.greater(current_metric, self.best_loss):
+
+        if np.greater(current_metric, self.best_metric):
             self.best_metric = current_metric
             self.wait = 0
             self.best_weights = self.model.get_weights()
@@ -35,31 +35,31 @@ class EarlyStoppingWithThreshold(tf.keras.callbacks.Callback):
                 self.model.stop_training = True
                 print("Restoring model weights from the end of the best epoch.")
                 self.model.set_weights(self.best_weights)
-                
+
     def on_train_end(self, logs=None):
         print("Stopped early")
 
 
 class PitchModel(tf.keras.Model):
     def __init__(self, image_shape):
-        
+
         super(PitchModel, self).__init__()
 
-        self.conv1 = layers.Conv2D(64, (3, 3), activation='relu',input_shape=image_shape)
-        self.mp1 = layers.MaxPooling2D(pool_size=(2, 2))
-        self.drop1 = layers.Dropout(0.1)
-        self.conv2 = layers.Conv2D(64, (3, 3), activation='relu')
-        self.mp2 = layers.MaxPooling2D(pool_size=(2, 2))
-        self.drop2 = layers.Dropout(0.1)
-        self.conv3 = layers.Conv2D(128, (3, 3), activation='relu')
-        self.mp3 = layers.GlobalMaxPooling2D()
-        self.flat = layers.Flatten()
-        self.dense1 = layers.Dense(124, activation='relu')
-        self.dense2 = layers.Dense(4, activation='relu')
-        self.combined = tf.keras.layers.Concatenate()
-        self.dense3 = layers.Dense(128, activation='relu')
-        self.drop3 = layers.Dropout(0.1)
-        self.out = layers.Dense(1, activation='sigmoid')
+        self.conv1 = layers.Conv2D(64, (3, 3), activation='relu',input_shape=image_shape,name='conv_layer_1')
+        self.mp1 = layers.MaxPooling2D(pool_size=(2, 2),name='max_pooling_1')
+        self.drop1 = layers.Dropout(0.1,name='dropout_1')
+        self.conv2 = layers.Conv2D(64, (3, 3), activation='relu',name='conv_layer_2')
+        self.mp2 = layers.MaxPooling2D(pool_size=(2, 2),name='max_pooling_2')
+        self.drop2 = layers.Dropout(0.1,name='dropout_2')
+        self.conv3 = layers.Conv2D(128, (3, 3), activation='relu',name='conv_layer_3')
+        self.mp3 = layers.GlobalMaxPooling2D(name='global_max_pooling')
+        self.flat = layers.Flatten(name='flatten')
+        self.dense1 = layers.Dense(124, activation='relu',name='image_dense_layer')
+        self.dense2 = layers.Dense(4, activation='relu',name='metadata_dense_layer')
+        self.combined = tf.keras.layers.Concatenate(name='concatenate_layers')
+        self.dense3 = layers.Dense(128, activation='relu',name='final_dense_layer')
+        self.drop3 = layers.Dropout(0.1,name='dropout_3')
+        self.out = layers.Dense(1, activation='sigmoid',name='output_layer')
 
 
 
