@@ -1,6 +1,6 @@
 # Finding evidence of cheating in MLB broadcast audio
 
-
+ ## Work In Progress!!!! Analysis, better documentation, and metadata to be commited soon.
 
 ## Preface
 **background** https://en.wikipedia.org/wiki/Houston_Astros_sign_stealing_scandal
@@ -9,11 +9,37 @@ What struck me the most while watching the Astros sign stealing cheating scandal
 
 The bigger question I want to explore is how machine learning can be leveraged to catch instances of cheating in sports. Given that this cheating scandal happened right in front of our eyes, I wouldn't be surprised if we can find similar past cheating instances that blew right past our ears.
 
- ## Work In Progress!!!! Analysis, more documentation, and metadata to be commited soon.
+
 
 ### TL;DR.
 
-I used a Convolutional Neural Net to search for evidence of cheating in the MLB broadcast audio data. The model was able to identify (~90) of the instances of cheating without any specific training on trash can bangs sounds.
+I used a Convolutional Neural Net to search for evidence of cheating in the MLB broadcast audio data. The model was able to identify instances of cheating without any specific training on trash can bangs sounds.
+
+### Results
+*input_1 is a 128x106 image of the mel-spectrogram of the audio data prior to the pitch*
+
+*input_2 is the metadata for the pitch. For this specific model I have only included the batter and the month of the game being played.*
+![Model Diagram](/trained_models/model_diagram.png)
+
+Since the the audio and the metadata are expected to contain **no** valuable information about the pitch about to be thrown, we should not expect a good generalized model to learn anything. A model that *shows* learning, however, may indicate cheating. In the case of the 2017 Astros, audio cues(i.e. trash can banging) would indeed let the model learn.
+
+two caveats that may not indicate cheating:
+- the announcers may say the pitch type out load if they are aware of whats coming next
+- the model may learn from the presence of a bat sound if a player is more succesfull with a certain type of pitch.
+![Loss](/docs/loss.png)
+
+![Accuracy](/docs/accuracy.png)
+
+When plotting a histogram of the predictions we see a clear clustering of a small percentage of pitches with high value predictions.
+
+![Histogram of predictions](/docs/histogram.png)
+
+The "bang" is seen in all of these audio spectrograms as the triangular shape at the bottom of each image. Some have more than 1 bang.
+![Highest Predictions](/docs/top_15_preds.png)
+
+
+[MLB Video Playlist of Top 5 Predictions](https://www.mlb.com/video/00u7yc7ivV9ndZQst356/reels/highest-offspeed-predictions)
+
 
 #### Steps
 - Data Preparation
