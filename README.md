@@ -26,6 +26,8 @@ Since the the audio and the metadata are expected to contain **no** valuable inf
 two caveats that may not indicate cheating:
 - the announcers may say the pitch type out load if they are aware of whats coming next
 - the model may learn from the presence of a bat sound if a player is more succesfull with a certain type of pitch.
+
+NOTE:training loss is higher than validation loss because of the way tensorflow calculates loss at different stages of the epoch as well as as dropout.
 ![Loss](/docs/loss.png)
 
 ![Accuracy](/docs/accuracy.png)
