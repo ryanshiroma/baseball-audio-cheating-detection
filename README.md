@@ -6,17 +6,17 @@
 **background** https://en.wikipedia.org/wiki/Houston_Astros_sign_stealing_scandal
 
 
-Baseball is famously the sport with the most statistics obsessed fans. Every move of the ball and the players are tracked, tabulated, and compared which makes it a popular sport for data-lovers. As you might expect, huge communities exist online on websites like fangraphs.com and sabr.org. I've read many analysis articles online showing how the cheating may have benefited their numbers and eventual World Series win, post-hoc. (This also was extensively looked at during the foreign substance ban in 2021 and its affect on pitch spin rates :) ) What I was interested in was how, if possible, could we have identified the cheating itself, and not just evidence from its result?
+Data and statistics in baseball has always been a central part of the sport. Every move of the ball and action from the players are tracked, tabulated, and compared against. With so much data available, and especially now with the introduction of MLB Statcast a few years ago, fan-based baseball analysis is everywhere.
+After the Astros cheating scandal came out, tons of articles were published analyzing the effect of the cheating on their World Series win. These were all super interesting reads but what I was interested in was how, if possible, could we have identified the cheating itself and not just evidence from its result?
 
-Given how clear the banging sound was in the broadcast audio, I first aim to see if a model can accurately identify the specific trash can banging sounds in broadcast audio. If that is successful, can we then apply this technique to catch other teams cheating with audio cues?
+What struck me the most while watching the Astros sign stealing cheating scandal unfold *nearly a year after the cheating occurred* was how blatantly obvious the sign stealing came through in the TV broadcasts. The banging sounds were so clear it almost seemed like the can was mic'd up itself. I suppose in a world of instant tabulation of newer and newer sabermetrics, the sounds and buzz of the stadium are still sacred. 
 
-
-What struck me the most while watching the Astros sign stealing cheating scandal unfold *nearly a year after the cheating occurred* was how blatantly obvious the sign stealing came through in the TV broadcasts. The banging sounds were so clear it almost seemed like the can was mic'd up itself. I suppose in a world of instant tabulation of newer and newer sabermetrics, the sounds and buzz of the stadium are still sacred.
+Given how clear the banging sound was in the broadcast audio, it seems reasonable that a model can accurately identify the trash can banging sounds. The more interesting question to me is could this be used to flag cheating without prior knowledge that cheating is going on?
 
 
 
 ## TL;DR.
-I created a model to see if I could find any link between a pitch's audio and the type of pitch being thrown. Under the assumption of no cheating, a perfectly fitted model would have nothing to learn. However, since a trash can bang was used to relay to the batter that an off-speed pitch was coming, the fitted model was  able to identify the pitches with bangs to a very high accuracy and thus improve its overall pitch type prediction accuracy over random guessing.
+I created a model to see if I could find any link between a pitch's audio and the type of pitch being thrown. Under the assumption of no cheating, a perfectly fitted model would have nothing to learn. With about half of all pitches being fastballs, we'd expect a model fitted with no cheating to be right half of the time. However, since a trash can bang was used to relay to the batter that an off-speed pitch was coming 1/3 of the time, the fitted model was able to improve from half right to about 50% +(50% x 1/3) right. This extra 12% of accuracy came from the model identifying trash can bangs.
 
 ## Analysis Outline
 - Data Preparation
@@ -43,6 +43,7 @@ I created a model to see if I could find any link between a pitch's audio and th
 ### Meta Data
 The data was scraped from the MLB baseball savant website https://baseballsavant.mlb.com/statcast_search using Beautiful Soup. I pulled all pitches thrown to Astros batters in home games during the 2017 seasons.
 
+**add more charts here with ground truth data**
 
 - 12,642 total pitches
 - 19 players
@@ -141,7 +142,7 @@ The model stabilized after around 40 epochs and showed no signs of overfitting.
 
 ### Results
 
-Since the the audio and the metadata are expected to contain **no** valuable information about the pitch about to be thrown, we should not expect a good generalized model to learn anything. A model that *shows* learning, however, may indicate cheating. In the case of the 2017 Astros, audio cues(i.e. trash can banging) would indeed let the model learn.
+Since the the audio and the metadata are expected to contain **no** valuable information about the pitch about to be thrown, we should not expect a good generalized model to learn anything. A model that *shows* learning, however, *may* indicate cheating. In the case of the 2017 Astros, audio cues(i.e. trash can banging) would indeed let the model learn.
 
 **Two caveats that may not indicate cheating:**
 - the announcers may say the pitch type out load if they are aware of whats coming next
