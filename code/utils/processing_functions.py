@@ -64,22 +64,23 @@ def download_data(config: dict) -> pd.DataFrame:
                         if len(pitch_id)>1:
                             if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')):
                                 urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
-
-                            df = df.append({
-                                'pitch':elements[0].text,
-                                'mph':elements[1].text,
-                                'exit_velocty':elements[2].text,
-                                'pitcher':elements[3].text,
-                                'batter':elements[4].text,
-                                'dist':elements[5].text,
-                                'spin_rate':elements[6].text,
-                                'launch_angle':elements[7].text,
-                                'zone':elements[8].text,
-                                'date':elements[9].text,
-                                'count':elements[10].text,
-                                'inning':elements[11].text,
-                                'pitch_result':elements[12].text,
-                                'pitch_id':pitch_id},ignore_index=True)
+                            
+                            if os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')):
+                                df = df.append({
+                                    'pitch':elements[0].text,
+                                    'mph':elements[1].text,
+                                    'exit_velocty':elements[2].text,
+                                    'pitcher':elements[3].text,
+                                    'batter':elements[4].text,
+                                    'dist':elements[5].text,
+                                    'spin_rate':elements[6].text,
+                                    'launch_angle':elements[7].text,
+                                    'zone':elements[8].text,
+                                    'date':elements[9].text,
+                                    'count':elements[10].text,
+                                    'inning':elements[11].text,
+                                    'pitch_result':elements[12].text,
+                                    'pitch_id':pitch_id},ignore_index=True)
 
                         df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
                     except:
@@ -109,12 +110,23 @@ def process_data(pitch_ids: list,
         print(pitch_id)
         video_file = os.path.join(RAW_DATA_PATH,'video', pitch_id + '.mp4')
         audio_file = os.path.join(RAW_DATA_PATH,'audio', pitch_id + '.wav')
-        image_file = os.path.join(PROCESSED_IMAGE_PATH,pitch_id+'.png')
+        image_file = os.path.join(PROCESSED_IMAGE_PATH, pitch_id+'.png')
+
+        #### first check if the image already exists and skip if so
+        if os.path.exists(image_file):
+            print('image file: {image_file} already exists'.format(image_file=image_file))
+            continue
+
+        #### check that there is a video file to process
+        if not os.path.exists(audio_file):
+            print('video file: {video_file} does not exist'.format(video_file=video_file))
+            continue
 
         #### extract the audio from the video file
         if not os.path.exists(audio_file):
             command = "ffmpeg -i " + video_file + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + audio_file
             print(subprocess.call(command, shell=True))
+
 
         #### convert the wav to the mel-spectrogram
         y, sr = librosa.load(audio_file,sr=sr,offset=0,duration = duration)[:sr*duration]

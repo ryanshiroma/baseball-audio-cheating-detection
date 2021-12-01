@@ -1,5 +1,6 @@
 date_from: "2017-01-01"
 date_to: "2017-12-31"
+home_road: "home"
 teams:
   - "HOU"
 batter_ids:
