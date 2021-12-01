@@ -82,7 +82,7 @@ def download_data(config: dict) -> pd.DataFrame:
                                     'pitch_result':elements[12].text,
                                     'pitch_id':pitch_id},ignore_index=True)
 
-                        df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
+                            df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
                     except:
                         pass
                     i=i+1
@@ -102,6 +102,7 @@ def process_data(pitch_ids: list,
     n_fft=8192
     hop_length=2048
 
+    # create audio folder path if it doesn't exist
     if not os.path.exists(os.path.join(RAW_DATA_PATH,'audio')):
         os.makedirs(os.path.join(RAW_DATA_PATH,'audio'))
 
@@ -110,7 +111,7 @@ def process_data(pitch_ids: list,
         print(pitch_id)
         video_file = os.path.join(RAW_DATA_PATH,'video', pitch_id + '.mp4')
         audio_file = os.path.join(RAW_DATA_PATH,'audio', pitch_id + '.wav')
-        image_file = os.path.join(PROCESSED_IMAGE_PATH, pitch_id+'.png')
+        image_file = os.path.join(PROCESSED_IMAGE_PATH, pitch_id + '.png')
 
         #### first check if the image already exists and skip if so
         if os.path.exists(image_file):
@@ -118,7 +119,7 @@ def process_data(pitch_ids: list,
             continue
 
         #### check that there is a video file to process
-        if not os.path.exists(audio_file):
+        if not os.path.exists(video_file):
             print('video file: {video_file} does not exist'.format(video_file=video_file))
             continue
 

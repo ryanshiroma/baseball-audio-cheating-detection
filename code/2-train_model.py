@@ -18,7 +18,7 @@ y = df['label']
 # create one-hot-encoded metadata dataset
 enc = OneHotEncoder(sparse=False)
 X_meta_data = enc.fit_transform(df[['batter','month']])
-with open('../trained_models/pitch_model/metadata_processor.joblib', 'wb') as f:
+with open('../trained_models/metadata_processor.joblib', 'wb') as f:
     joblib.dump(enc, f)
 
 # create image dataset
