@@ -2,6 +2,12 @@
 
  ## Work In Progress!!!! Analysis, better documentation, and metadata to be commited soon.
 
+
+## TL;DR.
+I created a model to see if I could find any link between the type of pitch thrown and the sounds that precede the pitch. Under the assumption of no cheating, a well-generalized fitted model would find no link. However, in the case of the Astros 2017 season, the banging of a trash can was used to relay to the batter that an off-speed pitch was coming. This begged the question, if a model can identify that an off-speed pitch correlates with a trash can bang in the audio, can we identify random audio-based cheating with no prior knowledge? The results from this analysis shows that in the case of the blatant Astros cheating scheme, yes we can.
+
+
+
 ## Preface
 **background** https://en.wikipedia.org/wiki/Houston_Astros_sign_stealing_scandal
 
@@ -15,10 +21,46 @@ Given how clear the banging sound was in the broadcast audio, it seems reasonabl
 
 
 
-## TL;DR.
-I created a model to see if I could find any link between a pitch's audio and the type of pitch being thrown. Under the assumption of no cheating, a perfectly fitted model would have nothing to learn. With about half of all pitches being fastballs, we'd expect a model fitted with no cheating to be right half of the time. However, since a trash can bang was used to relay to the batter that an off-speed pitch was coming 1/3 of the time, the fitted model was able to improve from half right to about 50% +(50% x 1/3) right. This extra 12% of accuracy came from the model identifying trash can bangs.
 
-## Analysis Outline
+
+
+# Results
+
+
+The conclusion of this project is that we successfully identified the trash can banging without prior knowledge of the banging itself.
+
+The model identified  --XX-- cheating instances from the following players.
+
+These results can be validated against manually tagged data from Tony Adams at http://signstealingscandal.com/.
+
+ -- comparisons here --
+
+A lot of things had to go right in order for the model to learn in this case:
+
+- the trash can was either near a broadcast microphone or was extremely loud.
+- The Astros did not switch up their bang signal game-to-game(bang always meant off-speed).
+- They did this for full season of data giving us thousands of data points.
+- They used the same trash can which gives us an almost identical noises each time.
+
+**Two caveats that may not indicate cheating:**
+- the announcers may say the pitch type out load if they are aware of whats coming next
+- the model may learn from the presence of a bat sound if a player is more succesful with a certain type of pitch. This should be accounted for when validating the results.
+
+
+When plotting a histogram of the predictions we see a clear clustering of a small percentage of pitches with high value predictions.
+
+![Histogram of predictions](/docs/histogram.png)
+
+The "bang" is seen in all of these audio spectrograms as the triangular shape at the bottom of each image. Some have more than 1 bang.
+![Highest Predictions](/docs/top_15_preds.png)
+
+
+[MLB Video Playlist of Top 5 Predictions](https://www.mlb.com/video/00u7yc7ivV9ndZQst356/reels/highest-offspeed-predictions)
+
+
+
+
+# Project Outline
 - Data Preparation
   - Video Data
     - Scrape MLB.com for at-bat videos
@@ -136,26 +178,11 @@ output = layers.Dense(1, activation='sigmoid')(drop3)
 ![Model Diagram](/trained_models/model_diagram.png)
 
 The model stabilized after around 40 epochs and showed no signs of overfitting.
+
+
 ![Loss](/docs/loss.png)
 
 ![Accuracy](/docs/accuracy.png)
+The traning loss/accuracy is *not* non-monotonically decreasing/increasing because I apply dropout after each epoch and subsequent epochs might have a worse loss/accuracy.
 
-### Results
-
-Since the the audio and the metadata are expected to contain **no** valuable information about the pitch about to be thrown, we should not expect a good generalized model to learn anything. A model that *shows* learning, however, *may* indicate cheating. In the case of the 2017 Astros, audio cues(i.e. trash can banging) would indeed let the model learn.
-
-**Two caveats that may not indicate cheating:**
-- the announcers may say the pitch type out load if they are aware of whats coming next
-- the model may learn from the presence of a bat sound if a player is more succesfull with a certain type of pitch.
-
-
-When plotting a histogram of the predictions we see a clear clustering of a small percentage of pitches with high value predictions.
-
-![Histogram of predictions](/docs/histogram.png)
-
-The "bang" is seen in all of these audio spectrograms as the triangular shape at the bottom of each image. Some have more than 1 bang.
-![Highest Predictions](/docs/top_15_preds.png)
-
-
-[MLB Video Playlist of Top 5 Predictions](https://www.mlb.com/video/00u7yc7ivV9ndZQst356/reels/highest-offspeed-predictions)
 
