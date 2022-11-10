@@ -2,6 +2,6 @@
 .vscode
 
 # data
-data/**/*.png
-data/**/*.wav
-data/**/*.mp4
+baseball-audio-cheating-detection/data/**/*.png
+baseball-audio-cheating-detection/data/**/*.wav
+baseball-audio-cheating-detection/data/**/*.mp4
