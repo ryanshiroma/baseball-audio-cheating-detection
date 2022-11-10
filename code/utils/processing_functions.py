@@ -16,7 +16,7 @@ import librosa
 from librosa.display import specshow
 import noisereduce as nr
 import matplotlib.pyplot as plt
-
+import sagemaker
 
 # path settings
 BASEBALL_SAVANT_BASE_URL = 'https://baseballsavant.mlb.com'
@@ -25,16 +25,18 @@ RAW_DATA_PATH = '../data/raw'
 PITCH_TABLE_PATH = '../data'
 PROCESSED_IMAGE_PATH = '../data/processed'
 
-
+BUCKET = 's3://sagemaker-us-east-1-266206007047'
 
 
 
 def download_data(config: dict) -> pd.DataFrame:
-
+    print(os.getcwd())
+    uploader = sagemaker.s3.S3Uploader()
+    downloader = sagemaker.s3.S3Downloader()
+    
     # if not os.path.exists(os.path.join(PITCH_TABLE_PATH,'pitch_table.csv')):
     df=pd.DataFrame(columns=['pitch','mph','exit_velocty','pitcher','batter','dist','spin_rate',
                             'launch_angle','zone','date','count','inning','pitch_result','pitch_id'])
-
     # loop through each batter
     for batter in config['batter_ids']:
 
@@ -58,15 +60,22 @@ def download_data(config: dict) -> pd.DataFrame:
                 elements=pitch.find_all('td')
                 if len(elements) != 0:
                     try:
-                        play = BeautifulSoup(requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href']).text,"lxml")
+                        r = requests.get(BASEBALL_SAVANT_BASE_URL+elements[14].a['href'])
+                        play = BeautifulSoup(r.text,"lxml")
                         pitch_id=play.find_all('video')[0].source['src'].split('/')[-1].split('.')[0]
-                        # print(pitch_id)
+                        
                         if len(pitch_id)>1:
-                            if not os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')):
-                                urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+pitch_id+'.mp4', os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4'))
-                            
-                            if os.path.exists(os.path.join(RAW_DATA_PATH,'video',pitch_id+'.mp4')):
-                                df = df.append({
+                            video_file_name = pitch_id + '.mp4'
+                            local_video_path = os.path.join(RAW_DATA_PATH,'video',video_file_name)
+                            s3_video_path = os.path.join(BUCKET,'video')
+
+                            if video_file_name not in [f.split('/')[-1] for f in downloader.list(s3_video_path)]:
+                                urllib.request.urlretrieve(VIDEO_CLIP_BASE_URL+video_file_name, local_video_path)
+                                uploader.upload(local_video_path,s3_video_path)
+                                os.remove(local_video_path)
+                                
+                            if os.path.exists(local_video_path):
+                                df = pd.concat([df,pd.DataFrame({
                                     'pitch':elements[0].text,
                                     'mph':elements[1].text,
                                     'exit_velocty':elements[2].text,
@@ -80,9 +89,10 @@ def download_data(config: dict) -> pd.DataFrame:
                                     'count':elements[10].text,
                                     'inning':elements[11].text,
                                     'pitch_result':elements[12].text,
-                                    'pitch_id':pitch_id},ignore_index=True)
+                                    'pitch_id':pitch_id},ignore_index=True)])
 
                             df.to_csv(os.path.join(PITCH_TABLE_PATH,'pitch_table_temp.csv'),index=False)
+                            print(i,video_file_name)
                     except:
                         pass
                     i=i+1
@@ -90,9 +100,11 @@ def download_data(config: dict) -> pd.DataFrame:
     return df
 
 
-def process_data(pitch_ids: list,
-                 keep_wavs: bool=False):
+def process_data(pitch_ids: list=None,
+                 keep_wavs: bool=False,
+                 keep_mp4s: bool=False):
 
+    downloader = sagemaker.s3.S3Downloader()
     # mel spectrogram settings
     duration = 5
     sr = 44100
@@ -102,6 +114,10 @@ def process_data(pitch_ids: list,
     n_fft=8192
     hop_length=2048
 
+    pitch_ids = [f.split('/')[-1].split('.')[0] for f in downloader.list(BUCKET+'/video')]
+    
+    processed_image_ids = [f.split('/')[-1].split('.')[0] for f in downloader.list(BUCKET+'/image')]
+    
     # create audio folder path if it doesn't exist
     if not os.path.exists(os.path.join(RAW_DATA_PATH,'audio')):
         os.makedirs(os.path.join(RAW_DATA_PATH,'audio'))
@@ -109,28 +125,28 @@ def process_data(pitch_ids: list,
 
     for pitch_id in pitch_ids:
         print(pitch_id)
-        video_file = os.path.join(RAW_DATA_PATH,'video', pitch_id + '.mp4')
-        audio_file = os.path.join(RAW_DATA_PATH,'audio', pitch_id + '.wav')
-        image_file = os.path.join(PROCESSED_IMAGE_PATH, pitch_id + '.png')
+        s3_video_path = os.path.join(BUCKET,'video', pitch_id+'.mp4')
+        s3_audio_path = os.path.join(BUCKET,'audio', pitch_id+'.wav')
+        s3_image_path = os.path.join(BUCKET,'image', pitch_id+'.png')
+        local_video_path = os.path.join(RAW_DATA_PATH,'video', pitch_id+'.mp4')
+        local_audio_path = os.path.join(RAW_DATA_PATH,'audio', pitch_id+'.wav')
+        local_image_path = os.path.join(RAW_DATA_PATH,'image', pitch_id+'.png')
 
         #### first check if the image already exists and skip if so
-        if os.path.exists(image_file):
-            print('image file: {image_file} already exists'.format(image_file=image_file))
-            continue
-
-        #### check that there is a video file to process
-        if not os.path.exists(video_file):
-            print('video file: {video_file} does not exist'.format(video_file=video_file))
+        if pitch_id in processed_images:
+        # if os.path.exists(image_file):
+            print('image file: {image_file} already exists'.format(image_file=s3_image_path))
             continue
 
         #### extract the audio from the video file
-        if not os.path.exists(audio_file):
-            command = "ffmpeg -i " + video_file + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + audio_file
+        if pitch_id not in processed_image_ids:
+            downloader.download(s3_video_path,local_video_path)
+            command = "ffmpeg -i " + local_video_path + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + local_audio_path
             print(subprocess.call(command, shell=True))
 
 
         #### convert the wav to the mel-spectrogram
-        y, sr = librosa.load(audio_file,sr=sr,offset=0,duration = duration)[:sr*duration]
+        y, sr = librosa.load(local_audio_path,sr=sr,offset=0,duration = duration)[:sr*duration]
 
         # remove noise from audio
         reduced_noise_y = nr.reduce_noise(y = y, sr=sr, n_std_thresh_stationary=nr_threshold,stationary=True)
@@ -147,11 +163,14 @@ def process_data(pitch_ids: list,
         specshow(librosa.amplitude_to_db(s,ref=np.max),y_axis='mel', fmax=fmax,x_axis='time',ax=ax,cmap='gray_r')
         ax.set_axis_off()
         fig.add_axes(ax)
-        plt.savefig(image_file, dpi=400, bbox_inches='tight',pad_inches=0)
+        plt.savefig(local_image_path, dpi=400, bbox_inches='tight',pad_inches=0)
         plt.close('all')
 
         if not keep_wavs:
-            os.remove(audio_file)
+            os.remove(local_audio_path)
+            
+        uploader.upload(local_image_path,s3_image_path)
+        os.remove(local_video_path)
 
 
 
