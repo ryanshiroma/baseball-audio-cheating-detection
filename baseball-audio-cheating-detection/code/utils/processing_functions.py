@@ -21,9 +21,9 @@ import sagemaker
 # path settings
 BASEBALL_SAVANT_BASE_URL = 'https://baseballsavant.mlb.com'
 VIDEO_CLIP_BASE_URL = 'https://sporty-clips.mlb.com/'
-RAW_DATA_PATH = '../data/raw'
-PITCH_TABLE_PATH = '../data'
-PROCESSED_IMAGE_PATH = '../data/processed'
+RAW_DATA_PATH = '/baseball-audio-cheating-detection/data/raw'
+PITCH_TABLE_PATH = '/baseball-audio-cheating-detection/data'
+PROCESSED_IMAGE_PATH = '/baseball-audio-cheating-detection/data/processed'
 
 BUCKET = 's3://sagemaker-us-east-1-266206007047'
 

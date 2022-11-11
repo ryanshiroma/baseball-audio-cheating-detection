@@ -4,7 +4,7 @@ import yaml
 import os
 PITCH_TABLE_PATH = '../data'
 
-with open('../code/astros_config.yaml', 'r') as file:
+with open('/baseball-audio-cheating-detection/code/astros_config.yaml', 'r') as file:
     config = yaml.safe_load(file)
 
 
