@@ -21,11 +21,11 @@ import sagemaker
 # path settings
 BASEBALL_SAVANT_BASE_URL = 'https://baseballsavant.mlb.com'
 VIDEO_CLIP_BASE_URL = 'https://sporty-clips.mlb.com/'
-RAW_DATA_PATH = '/baseball-audio-cheating-detection/data/raw'
-PITCH_TABLE_PATH = '/baseball-audio-cheating-detection/data'
-PROCESSED_IMAGE_PATH = '/baseball-audio-cheating-detection/data/processed'
+RAW_DATA_PATH = '../data/raw'
+PITCH_TABLE_PATH = '../data'
+PROCESSED_IMAGE_PATH = '../data/processed'
 
-BUCKET = 's3://sagemaker-us-east-1-266206007047'
+BUCKET = '##############'
 
 
 
@@ -105,6 +105,7 @@ def process_data(pitch_ids: list=None,
                  keep_mp4s: bool=False):
 
     downloader = sagemaker.s3.S3Downloader()
+    uploader = sagemaker.s3.S3Uploader()
     # mel spectrogram settings
     duration = 5
     sr = 44100
@@ -127,13 +128,13 @@ def process_data(pitch_ids: list=None,
         print(pitch_id)
         s3_video_path = os.path.join(BUCKET,'video', pitch_id+'.mp4')
         s3_audio_path = os.path.join(BUCKET,'audio', pitch_id+'.wav')
-        s3_image_path = os.path.join(BUCKET,'image', pitch_id+'.png')
-        local_video_path = os.path.join(RAW_DATA_PATH,'video', pitch_id+'.mp4')
+        s3_image_path = os.path.join(BUCKET,'image')#, pitch_id+'.png')
+        local_video_path = os.path.join(RAW_DATA_PATH,'video')#, pitch_id+'.mp4')
         local_audio_path = os.path.join(RAW_DATA_PATH,'audio', pitch_id+'.wav')
         local_image_path = os.path.join(RAW_DATA_PATH,'image', pitch_id+'.png')
 
         #### first check if the image already exists and skip if so
-        if pitch_id in processed_images:
+        if pitch_id in processed_image_ids:
         # if os.path.exists(image_file):
             print('image file: {image_file} already exists'.format(image_file=s3_image_path))
             continue
@@ -141,7 +142,7 @@ def process_data(pitch_ids: list=None,
         #### extract the audio from the video file
         if pitch_id not in processed_image_ids:
             downloader.download(s3_video_path,local_video_path)
-            command = "ffmpeg -i " + local_video_path + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + local_audio_path
+            command = "ffmpeg -i " + local_video_path+'/'+ pitch_id+'.mp4' + " -vn -acodec pcm_s16le -ar 44100 -ac 1 -loglevel quiet -stats " + local_audio_path
             print(subprocess.call(command, shell=True))
 
 
@@ -170,7 +171,7 @@ def process_data(pitch_ids: list=None,
             os.remove(local_audio_path)
             
         uploader.upload(local_image_path,s3_image_path)
-        os.remove(local_video_path)
+        os.remove(local_video_path+'/'+ pitch_id+'.mp4')
 
 
 
