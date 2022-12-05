@@ -49,10 +49,10 @@ A lot of things had to go right in order for the model to learn in this case:
 
 When plotting a histogram of the predictions we see a clear clustering of a small percentage of pitches with high value predictions.
 
-![Histogram of predictions](/docs/histogram.png)
+![Histogram of predictions](baseball-audio-cheating-detection/docs/histogram.png)
 
 The "bang" is seen in all of these audio spectrograms as the triangular shape at the bottom of each image. Some have more than 1 bang.
-![Highest Predictions](/docs/top_15_preds.png)
+![Highest Predictions](baseball-audio-cheating-detection/docs/top_15_preds.png)
 
 
 [MLB Video Playlist of Top 5 Predictions](https://www.mlb.com/video/00u7yc7ivV9ndZQst356/reels/highest-offspeed-predictions)
@@ -129,9 +129,9 @@ https://sporty-clips.mlb.com/27df5d03-0f01-495b-8528-b8a277c30c2b.mp4
 From this video file, I then extracted the audio using `ffmpeg`, denoised the audio with `noise_reduce` and then converted to a mel-spectrogram using `librosa`.
 Below are afew examples of the outputed spectrograms.
 
-![spec1](/docs/0d9d5cfb-8f69-4cf5-88ec-60d921e5ad3e.png)
-![spec1](/docs/0cf1f959-3566-456e-9f4d-26a4a33b3790.png)
-![spec1](/docs/0d3fde58-b2e7-43a9-bfc0-6f591ec41f46.png)
+![spec1](baseball-audio-cheating-detection/docs/0d9d5cfb-8f69-4cf5-88ec-60d921e5ad3e.png)
+![spec1](baseball-audio-cheating-detection/docs/0cf1f959-3566-456e-9f4d-26a4a33b3790.png)
+![spec1](baseball-audio-cheating-detection/docs/0d3fde58-b2e7-43a9-bfc0-6f591ec41f46.png)
 
 ## Model Training
 
@@ -175,14 +175,14 @@ output = layers.Dense(1, activation='sigmoid')(drop3)
 ```
 
 
-![Model Diagram](/trained_models/model_diagram.png)
+![Model Diagram](baseball-audio-cheating-detection/trained_models/model_diagram.png)
 
 The model stabilized after around 40 epochs and showed no signs of overfitting.
 
 
-![Loss](/docs/loss.png)
+![Loss](baseball-audio-cheating-detection/docs/loss.png)
 
-![Accuracy](/docs/accuracy.png)
+![Accuracy](baseball-audio-cheating-detection/docs/accuracy.png)
 The traning loss/accuracy is *not* non-monotonically decreasing/increasing because I apply dropout after each epoch and subsequent epochs might have a worse loss/accuracy.
 
 
