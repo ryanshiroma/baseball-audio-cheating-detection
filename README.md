@@ -69,14 +69,14 @@ The "bang" is seen in all of these audio spectrograms as the triangular shape at
     - Generate mel-spectrograms images
   - Meta Data
     - Scrape MLB.com for pitch metadata
-    - one-hot encode batters and month
+    - one-hot encode batters
     - create the target by binarizing off-speed and fastball pitches to 0-1
 - Model Training
   - Split dataset into training and test datasets
   - Fit C-NN and optimize hyperparameters
 - Model Inference and Analysis
   - Inspect the prediction distribution to determine if cheating signals are present
-  - use integrated gradients (or similar) to identify the cheating sound itself
+  - Use SHAPley values to pinpoint the sound itself
 - Future Work
   - Rerun the analysis for past seasons and other teams
 
@@ -133,56 +133,82 @@ Below are afew examples of the outputed spectrograms.
 ![spec1](baseball-audio-cheating-detection/docs/0cf1f959-3566-456e-9f4d-26a4a33b3790.png)
 ![spec1](baseball-audio-cheating-detection/docs/0d3fde58-b2e7-43a9-bfc0-6f591ec41f46.png)
 
-## Model Training
+## Model Architecture
 
-I started with a commonly used Convolutional neural network model structure as a baseline and then tweaked the number of filters in the convolutional layers and nodes in the dense layers and chose the model with the best validation AUC.
+The model consists of two combined components:
+1. image data goes through through 3 convolutional layers and a dense layer on its output
+2. meta data goes through a single 4 node dense layer
+
+Both of these layers are then concatenated and outputed to a second 32 node dense layer before finally outputing to a sigmoid function.
+
 ```
-# input for the images
-input_1 = keras.Input(shape=input_shape)
+class BaseballCNN(nn.Module):
+    def __init__(self,filters=32,dropout=0.1,nodes=32):
+        super().__init__()
+        self.conv1 = nn.Conv2d(1, filters, 3)
+        self.pool1 = nn.MaxPool2d(2)
+        self.drop1 = nn.Dropout(p=dropout)
+        
+        self.conv2 = nn.Conv2d(filters, filters, 3)
+        self.pool2 = nn.MaxPool2d(2)
+        self.drop2 = nn.Dropout(p=dropout)
+        
+        self.conv3 = nn.Conv2d(filters, filters, 3)
+        self.pool3 = nn.MaxPool2d(2)
+        
+        self.linear_image = nn.Linear(filters* 11* 14,nodes-4)
+        self.linear_meta = nn.Linear(20,4)
+        self.drop3 = nn.Dropout(dropout)
+        
+        self.linear2 = nn.Linear(nodes,nodes) 
+        self.drop4 = nn.Dropout(dropout)
+        self.linear3 = nn.Linear(nodes,1)
+        
+    def forward(self, x_image,x_meta):
+        
+        # 3 convolutional layers on the image with max pooling
+        x_image = F.relu(self.conv1(x_image))
+        x_image = self.pool1(x_image)
+        x_image = self.drop1(x_image)
+        x_image = F.relu(self.conv2(x_image))
+        x_image = self.pool2(x_image)
+        x_image = self.drop2(x_image)
+        x_image = F.relu(self.conv3(x_image))
+        x_image = self.pool3(x_image)
+        x_image = torch.flatten(x_image,1)
 
-# convolutional layer 1
-conv1 = layers.Conv2D(64, (3, 3), activation='relu')(input_1)
-mp1 = layers.MaxPooling2D(pool_size=(2, 2))(conv1)
-drop1 = layers.Dropout(0.1)(mp1)
+        # a dense layer with 4 nodes for the meta data
+        x_image = self.linear_image(x_image)
 
-# convolutional layer 2
-conv2 = layers.Conv2D(64, (3, 3), activation='relu')(drop1)
-mp2 = layers.MaxPooling2D(pool_size=(2, 2))(conv2)
-drop2 = layers.Dropout(0.25)(mp2)
+        # a dense layer on the flattened image layers
+        x_meta = self.linear_meta(x_meta)
 
-# convolutional layer 3
-conv3 = layers.Conv2D(128, (3, 3), activation='relu')(drop2)
-mp3 = layers.MaxPooling2D(pool_size=(2, 2))(conv3)
-drop3 = layers.Dropout(0.1)(mp3)
+        # concatenating the two dense components 
+        x = torch.cat((x_image,x_meta),1)
 
-# dense layer for the images
-flat = layers.Flatten()(drop2)
-dense1 = layers.Dense(124, activation='relu')(flat)
-
-# input for the metadata
-input_2 = keras.Input(shape = (19,))
-
-# dense layer for the metadata
-dense2 = layers.Dense(4, activation='relu')(input_2)
-
-# dense layer for the concatenated image and metadata dense layers
-combined = tf.keras.layers.Concatenate()([dense1,dense2])
-dense3 = layers.Dense(128, activation='relu')(combined)
-drop3 = layers.Dropout(0.1)(dense3)
-
-# single class output
-output = layers.Dense(1, activation='sigmoid')(drop3)
+        # sigmoid output
+        x= torch.sigmoid(self.linear3(self.drop4(self.linear2(x))))
+        return x
 ```
 
 
 ![Model Diagram](baseball-audio-cheating-detection/trained_models/model_diagram.png)
 
-The model stabilized after around 40 epochs and showed no signs of overfitting.
+Interestingly, the model starts to truly fit to the data after ~16 epochs and continues to decrease loss on the validation set until epoch ~30. Early stopping was applied to ultimately select the weights after 31 epochs.
 
+![Loss](baseball-audio-cheating-detection/docs/cnn_loss.png)
 
-![Loss](baseball-audio-cheating-detection/docs/loss.png)
+![Accuracy](baseball-audio-cheating-detection/docs/cnn_acc.png)
 
-![Accuracy](baseball-audio-cheating-detection/docs/accuracy.png)
-The traning loss/accuracy is *not* non-monotonically decreasing/increasing because I apply dropout after each epoch and subsequent epochs might have a worse loss/accuracy.
+## SHAP Interpretation of the Predictions
 
-
+I then ran SHAP DeepExplainer on the predictions and plotted out where within the image the prediction was derived from.
+![shap1](baseball-audio-cheating-detection/docs/cnn_shap_2.png)
+![shap2](baseball-audio-cheating-detection/docs/cnn_shap_14.png)
+![shap3](baseball-audio-cheating-detection/docs/cnn_shap_87.png)
+![shap2](baseball-audio-cheating-detection/docs/cnn_shap_134.png)
+![shap3](baseball-audio-cheating-detection/docs/cnn_shap_140.png)
+![shap2](baseball-audio-cheating-detection/docs/cnn_shap_145.png)
+![shap3](baseball-audio-cheating-detection/docs/cnn_shap_156.png)
+![shap2](baseball-audio-cheating-detection/docs/cnn_shap_159.png)
+![shap3](baseball-audio-cheating-detection/docs/cnn_shap_166.png)
