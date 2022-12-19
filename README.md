@@ -1,7 +1,5 @@
 # Finding evidence of cheating in MLB broadcast audio
 
- ## Work In Progress!!!! Analysis, better documentation, and metadata to be commited soon.
-
 
 ## TL;DR.
 I created a model to see if I could find any link between the type of pitch thrown and the sounds that precede the pitch. Under the assumption of no cheating, a well-generalized fitted model would find no link. However, in the case of the Astros 2017 season, the banging of a trash can was used to relay to the batter that an off-speed pitch was coming. This begged the question, if a model can identify that an off-speed pitch correlates with a trash can bang in the audio, can we identify random audio-based cheating with no prior knowledge? The results from this analysis shows that in the case of the blatant Astros cheating scheme, yes we can.
@@ -23,6 +21,7 @@ Given how clear the banging sound was in the broadcast audio, it seems reasonabl
 
 
 # Results
+![shap1](baseball-audio-cheating-detection/docs/shap_1.png)
 
 The model identified 785 instances of trash can banging. I've created a youtube video (https://youtu.be/wWOyXkG35tk) that includes all bang sounds that the model identified(Note: the model also sometimes identified sounds that sounded like bangs but were not).
 
