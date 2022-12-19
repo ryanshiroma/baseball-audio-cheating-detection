@@ -21,7 +21,7 @@ Given how clear the banging sound was in the broadcast audio, it seems reasonabl
 
 
 # Results
-![shap1](baseball-audio-cheating-detection/docs/shap_1.png)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/wWOyXkG35tk/0.jpg)](https://www.youtube.com/watch?v=wWOyXkG35tk)
 
 The model identified 785 instances of trash can banging. I've created a youtube video (https://youtu.be/wWOyXkG35tk) that includes all bang sounds that the model identified(Note: the model also sometimes identified sounds that sounded like bangs but were not).
 
