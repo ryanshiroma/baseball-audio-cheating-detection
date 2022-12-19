@@ -22,18 +22,27 @@ Given how clear the banging sound was in the broadcast audio, it seems reasonabl
 
 
 
-
-
 # Results
 
+The model identified 785 instances of trash can banging. I've created a youtube video (https://youtu.be/wWOyXkG35tk) that includes all bang sounds that the model identified(Note: the model also sometimes identified sounds that sounded like bangs but were not).
 
-The conclusion of this project is that we successfully identified the trash can banging without prior knowledge of the banging itself.
+I've also validated it against Tony Adams manually tagged data from his website, http://signstealingscandal.com/.
 
-The model identified  --XX-- cheating instances from the following players.
+|   | Bang(Manual)  |No Bang(Manual)    | Not Tagged(Manual)
+|---|---|---|---|
+| Bang(Model)  | 550  |69   | 173
+| No Bang(Model)  |  590 | 6757  | 2912
+| Not Tagged(Model)|2 |306 |N/A
 
-These results can be validated against manually tagged data from Tony Adams at http://signstealingscandal.com/.
+In other words, of the overlap between the manual tagging and the model:
+- the model was able to identify just under half(48.2%) of the actual bangs
+- it correctly identified 99% of the non-bangs 
 
- -- comparisons here --
+
+
+
+
+
 
 A lot of things had to go right in order for the model to learn in this case:
 
@@ -203,12 +212,13 @@ Interestingly, the model starts to truly fit to the data after ~16 epochs and co
 ## SHAP Interpretation of the Predictions
 
 I then ran SHAP DeepExplainer on the predictions and plotted out where within the image the prediction was derived from.
-![shap1](baseball-audio-cheating-detection/docs/cnn_shap_2.png)
-![shap2](baseball-audio-cheating-detection/docs/cnn_shap_14.png)
-![shap3](baseball-audio-cheating-detection/docs/cnn_shap_87.png)
-![shap2](baseball-audio-cheating-detection/docs/cnn_shap_134.png)
-![shap3](baseball-audio-cheating-detection/docs/cnn_shap_140.png)
-![shap2](baseball-audio-cheating-detection/docs/cnn_shap_145.png)
-![shap3](baseball-audio-cheating-detection/docs/cnn_shap_156.png)
-![shap2](baseball-audio-cheating-detection/docs/cnn_shap_159.png)
-![shap3](baseball-audio-cheating-detection/docs/cnn_shap_166.png)
+- the blue line shows the magnitude of the contribution towards the model score was within that point in time in the clip
+- the red spots are the exact spots that the shapley values were higher within the image
+- the black background is the original image spectrogram
+- the grey box shows the area that was selected for the final youtube video output clip(centered around the maximum point on the blue line)
+
+![shap1](baseball-audio-cheating-detection/docs/shap_1.png)
+![shap2](baseball-audio-cheating-detection/docs/shap_2.png)
+![shap3](baseball-audio-cheating-detection/docs/shap_3.png)
+![shap2](baseball-audio-cheating-detection/docs/shap_4.png)
+![shap3](baseball-audio-cheating-detection/docs/shap_5.png)
