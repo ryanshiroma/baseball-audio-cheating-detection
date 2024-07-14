@@ -2,7 +2,7 @@
 
 
 ## TL;DR.
-The original intent of this project was to see if I could train a model to identify the trash can banging *but* without doing any trash can banging labeling. This would mimic a real life scenario of a front office analyst trying to detect audio based cheating in general. To do this, I would try to train a model on pitch type only(no trash can bang labels) and see if it could do better than random. In the end, the model was successfully able to perform better than random and also point out exactly where in the audio the cheating was being being detected. See video below for 20 minutes of suspected bangs! 
+The original intent of this project was to see if I could train a model to identify the trash can banging *but* without doing any trash can banging labeling. This would mimic a real life scenario of a front office analyst trying to detect audio based cheating in general. To do this, I would try to train a model on pitch type only(no trash can bang labels) and see if it could do better than random. In the end, the model was successfully able to perform better than random and also point out exactly where in the audio the cheating was being being detected. See video below for 20 minutes of suspected bangs! The overall conclusion is that it was possible to identify the Astros cheating scandal directly from audio data without any knowledge of the cheating scheme itself!
 
 [![youtube link](https://img.youtube.com/vi/wWOyXkG35tk/0.jpg)](https://www.youtube.com/watch?v=wWOyXkG35tk)
 ![shap3](baseball-audio-cheating-detection/docs/shap_5.png)
@@ -40,6 +40,7 @@ In summary, the model was a bit conservative in its predictions using a threshol
 
 
 # Project Outline
+- Model Ideation
 - Data Preparation
   - Video Data
     - Scrape MLB.com for at-bat videos
@@ -58,6 +59,11 @@ In summary, the model was a bit conservative in its predictions using a threshol
   - Use SHAPley values to pinpoint the sound itself
 - Future Work
   - Rerun the analysis for past seasons and other teams
+  - upgrade the architecture to newer ML techniques and adapt it to be multi-modal(add video)
+
+# Model Ideation
+The high level version of the model is to combine numerical tabular pitch data from MLB.com with sound data and attempt to predict the pitch type(either fastball or off-speed)
+*(more detail to be added in the future)*
 
 # The Data
 
