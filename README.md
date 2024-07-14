@@ -5,7 +5,7 @@
 The original intent of this project was to see if I could train a model to identify the trash can banging *but* without doing any trash can banging labeling. This would mimic a real life scenario of a front office analyst trying to detect audio based cheating in general. To do this, I would try to train a model on pitch type only(no trash can bang labels) and see if it could do better than random. In the end, the model was successfully able to perform better than random and also point out exactly where in the audio the cheating was being being detected. See video below for 20 minutes of suspected bangs! 
 
 [![youtube link](https://img.youtube.com/vi/wWOyXkG35tk/0.jpg)](https://www.youtube.com/watch?v=wWOyXkG35tk)
-
+![shap3](baseball-audio-cheating-detection/docs/shap_5.png)
 ## Preface
 
 What struck me the most while watching the Astros sign stealing cheating scandal unfold *nearly a year after the cheating occurred* was how in retrospect, how blatantly obvious the sign stealing came through in the TV broadcasts. The banging sounds were so clear it almost seemed like the can was mic'd up itself. Even in a world of instant tabulation of newer and newer sabermetrics, in the spirit of baseball, quantifying the sounds and buzz of the stadium still feels wrong.
@@ -20,23 +20,19 @@ https://github.com/ryanshiroma/sagemaker-baseball
 # Results
 
 
-
-
 I've also validated my results against Tony Adams manually tagged data from his website, http://signstealingscandal.com/.
+In summary, the model was a bit conservative in its predictions using a threshold of 0.5 and captured only about half of all of the bangs but meanwhile only missclassified predicted bangs for a small fraction indicating that a smaller threshold that balances out the metrics would be better. However, the point of this project wasn't necesarily to find all bangs, but to identify the existence of cheating and relay that to an expert baseball analyst for review.
 
-In other words, of the overlap between the manual tagging and the model:
-- the model was able to identify just under half(48.2%) of the actual bangs
-- it correctly identified 99% of the non-bangs 
-- ROCAUC of  0.757
-- (add precision and recall here)
+- Recall: 0.482
+- Precision: 0.889
+- Accuracy: 0.917
+- ROCAUC: 0.757
 
-Seeing these results indicates that I should probably adjust the threshold downward in order to capture the 500+ missing bangs. But ultimately, I am very happy with the results.
 
-|   | Bang(Manual)  |No Bang(Manual)    | Not Tagged(Manual)
+|   | Positive (Actual)  |Negative(Actual)    | Unknown (Actual)
 |---|---|---|---|
-| Bang(Model)  | 550  |69   | 173
-| No Bang(Model)  |  590 | 6757  | 2912
-| Not Tagged(Model)|2 |306 |N/A
+| Positive(Pred)  | 550 (TP)  |69 (FP)  | 173
+| Negative (Pred)  |  590 (FN)| 6757 (TN)  | 2912
 
 
 
@@ -173,12 +169,11 @@ I then ran SHAP DeepExplainer on the predictions and plotted out where within th
 - the red spots are the exact spots that the shapley values were higher within the image
 - the black background is the original image spectrogram
 - the grey box shows the area that was selected for the final youtube video output clip(centered around the maximum point on the blue line)
-
 ![shap1](baseball-audio-cheating-detection/docs/shap_1.png)
 ![shap2](baseball-audio-cheating-detection/docs/shap_2.png)
 ![shap3](baseball-audio-cheating-detection/docs/shap_3.png)
 ![shap2](baseball-audio-cheating-detection/docs/shap_4.png)
-![shap3](baseball-audio-cheating-detection/docs/shap_5.png)
+
 
 
 # Future Work
