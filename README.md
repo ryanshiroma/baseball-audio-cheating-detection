@@ -2,25 +2,25 @@
 
 
 ## TL;DR.
-I wanted to programmatically create a video that shows all instances of astros trash can banging. To do that, I trained a convolutional neural network on MLB at bat clips from their website on pitch types(fastball vs off-speed) .One of the difficulties of modeling this was that not all off-speed pitches had a preceding bang sound, therefore the target variable was noisy. Even given this problem, the model was successfully able to point out that the banging noise was providing a preceding signal to the off-speed pitches. See video below!
+The original intent of this project was to see if I could train a model to identify the trash can banging *but* without doing any trash can banging labeling. This would mimic a real life scenario of a front office analyst trying to detect audio based cheating in general. To do this, I would try to train a model on pitch type only(no trash can bang labels) and see if it could do better than random. In the end, the model was successfully able to perform better than random and also point out exactly where in the audio the cheating was being being detected. See video below for 20 minutes of suspected bangs! 
 
 [![youtube link](https://img.youtube.com/vi/wWOyXkG35tk/0.jpg)](https://www.youtube.com/watch?v=wWOyXkG35tk)
 
 ## Preface
 
-What struck me the most while watching the Astros sign stealing cheating scandal unfold *nearly a year after the cheating occurred* was how blatantly obvious the sign stealing came through in the TV broadcasts. The banging sounds were so clear it almost seemed like the can was mic'd up itself. Even in a world of instant tabulation of newer and newer sabermetrics, in the spirit of baseball, quantifying the sounds and buzz of the stadium still feels wrong.
+What struck me the most while watching the Astros sign stealing cheating scandal unfold *nearly a year after the cheating occurred* was how in retrospect, how blatantly obvious the sign stealing came through in the TV broadcasts. The banging sounds were so clear it almost seemed like the can was mic'd up itself. Even in a world of instant tabulation of newer and newer sabermetrics, in the spirit of baseball, quantifying the sounds and buzz of the stadium still feels wrong.
 
 
 
 ## Sagemaker code
- I took this project as an opportunity to learn AWS Sagemaker so the codebase for each of the steps below are contained in a separate repo.
+ I also took this project as an opportunity to learn AWS Sagemaker so the codebase for each of the steps below are contained in a separate repo.
 
 https://github.com/ryanshiroma/sagemaker-baseball
 
 # Results
 
 
-The model identified 785 instances of trash can banging. I've created a youtube video (https://youtu.be/wWOyXkG35tk) that includes all bang sounds that the model identified(Note: the model also sometimes identified sounds that sounded like bangs but were not).
+
 
 I've also validated my results against Tony Adams manually tagged data from his website, http://signstealingscandal.com/.
 
@@ -28,6 +28,7 @@ In other words, of the overlap between the manual tagging and the model:
 - the model was able to identify just under half(48.2%) of the actual bangs
 - it correctly identified 99% of the non-bangs 
 - ROCAUC of  0.757
+- (add precision and recall here)
 
 Seeing these results indicates that I should probably adjust the threshold downward in order to capture the 500+ missing bangs. But ultimately, I am very happy with the results.
 
@@ -190,3 +191,5 @@ A lot of things had to go right in order for the model to learn in this case:
 - They used the same trash can which gives us an almost identical noises each time.
 
 Given that the model is agnostic to the sound itself, I would like to apply this technique to other seasons and teams where, if cheating happened elsewhere, the noise of the cheating would not be known a priori.
+
+I would also like to apply more modern ML techniques beyond CNNs with spectrograms as well as leverage video data.
